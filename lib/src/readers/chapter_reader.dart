@@ -50,8 +50,9 @@ class ChapterReader {
       final navPt = bookRef.Schema!.Navigation!.NavMap!.Points!
           .firstWhereOrNull((e) => e.Content!.Id == column.IdRef);
       chapterRef.Title = navPt?.NavigationLabels!.first.Text;
-      chapterRef.SubChapters =
-          getChaptersImpl(bookRef, navPt?.ChildNavigationPoints ?? []);
+      chapterRef.SubChapters = navPt?.ChildNavigationPoints != null
+          ? getChaptersImpl(bookRef, navPt!.ChildNavigationPoints!)
+          : [];
 
       result.add(chapterRef);
     }
