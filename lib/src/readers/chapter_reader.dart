@@ -47,13 +47,11 @@ class ChapterReader {
       var chapterRef = EpubChapterRef(htmlContentFileRef);
       chapterRef.ContentFileName = contentFileName;
       chapterRef.Anchor = anchor;
-      chapterRef.Title = bookRef.Schema!.Navigation!.NavMap!.Points!
-          .firstWhereOrNull((e) => e.Content!.Id == column.IdRef)
-          ?.NavigationLabels!
-          .first
-          .Text;
-      // chapterRef.SubChapters =
-      //     getChaptersImpl(bookRef, navigationPoint.ChildNavigationPoints!);
+      final navPt = bookRef.Schema!.Navigation!.NavMap!.Points!
+          .firstWhereOrNull((e) => e.Content!.Id == column.IdRef);
+      chapterRef.Title = navPt?.NavigationLabels!.first.Text;
+      chapterRef.SubChapters =
+          getChaptersImpl(bookRef, navPt?.ChildNavigationPoints ?? []);
 
       result.add(chapterRef);
     }
