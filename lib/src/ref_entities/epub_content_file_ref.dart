@@ -30,8 +30,7 @@ abstract class EpubContentFileRef {
       return false;
     }
 
-    return (other is EpubContentFileRef &&
-        other.FileName == FileName &&
+    return (other.FileName == FileName &&
         other.ContentMimeType == ContentMimeType &&
         other.ContentType == ContentType);
   }
