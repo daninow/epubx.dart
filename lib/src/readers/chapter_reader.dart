@@ -14,6 +14,16 @@ class ChapterReader {
         bookRef, bookRef.Schema!.Navigation!.NavMap!.Points!);
   }
 
+  static String _cleanPath(String contentFileName) {
+    contentFileName = Uri.decodeFull(contentFileName);
+    var segments = contentFileName.split('/');
+    if (segments.first == '..') {
+      segments.removeAt(0);
+      contentFileName = segments.join('/');
+    }
+    return contentFileName;
+  }
+
   static List<EpubChapterRef> getChaptersImpl(
       EpubBookRef bookRef, List<EpubNavigationPoint> navigationPoints) {
     var result = <EpubChapterRef>[];
@@ -31,12 +41,7 @@ class ChapterReader {
             contentFileName.substring(0, contentSourceAnchorCharIndex);
         anchor = contentFileName.substring(contentSourceAnchorCharIndex + 1);
       }
-      contentFileName = Uri.decodeFull(contentFileName);
-      var segments = contentFileName.split('/');
-      if (segments.first == '..') {
-        segments.removeAt(0);
-        contentFileName = segments.join('/');
-      }
+      contentFileName = _cleanPath(contentFileName);
       EpubTextContentFileRef? htmlContentFileRef;
       if (!bookRef.Content!.Html!.containsKey(contentFileName)) {
         throw Exception(
@@ -47,8 +52,9 @@ class ChapterReader {
       var chapterRef = EpubChapterRef(htmlContentFileRef);
       chapterRef.ContentFileName = contentFileName;
       chapterRef.Anchor = anchor;
-      final navPt = bookRef.Schema!.Navigation!.NavMap!.Points!
-          .firstWhereOrNull((e) => e.Content!.Id == column.IdRef);
+      final navPts = bookRef.Schema!.Navigation!.NavMap!.Points!;
+      final navPt = navPts.firstWhereOrNull(
+          (e) => _cleanPath(e.Content!.Source!) == contentFileName);
       chapterRef.Title = navPt?.NavigationLabels!.first.Text;
       chapterRef.SubChapters = navPt?.ChildNavigationPoints != null
           ? getChaptersImpl(bookRef, navPt!.ChildNavigationPoints!)
