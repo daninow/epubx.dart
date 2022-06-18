@@ -174,7 +174,9 @@ class EpubReader {
       chapter.ContentFileName = chapterRef.ContentFileName;
       chapter.Anchor = chapterRef.Anchor;
       chapter.HtmlContent = await chapterRef.readHtmlContent();
-      chapter.SubChapters = await readChapters(chapterRef.SubChapters!);
+      chapter.SubChapters = chapterRef.SubChapters != null
+          ? await readChapters(chapterRef.SubChapters!)
+          : null;
 
       result.add(chapter);
     });
