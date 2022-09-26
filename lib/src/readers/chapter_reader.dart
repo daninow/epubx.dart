@@ -11,10 +11,10 @@ class ChapterReader {
       return <EpubChapterRef>[];
     }
     try {
-      return getChaptersImplClassic(
+      return getChaptersImpl(
           bookRef, bookRef.Schema!.Navigation!.NavMap!.Points!);
     } catch (err) {
-      return getChaptersImpl(
+      return getChaptersImplClassic(
           bookRef, bookRef.Schema!.Navigation!.NavMap!.Points!);
     }
   }
