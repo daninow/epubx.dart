@@ -54,7 +54,8 @@ class ChapterReader {
       chapterRef.Anchor = anchor;
       final navPts = bookRef.Schema!.Navigation!.NavMap!.Points!;
       final navPt = navPts.firstWhereOrNull(
-          (e) => _cleanPath(e.Content!.Source!) == contentFileName);
+              (e) => _cleanPath(e.Content!.Source!) == contentFileName) ??
+          navPts.first;
       chapterRef.Title = navPt?.NavigationLabels!.first.Text;
       chapterRef.SubChapters = navPt?.ChildNavigationPoints?.isNotEmpty == true
           ? getChaptersImpl(bookRef, navPt!.ChildNavigationPoints!)
