@@ -10,9 +10,13 @@ class ChapterReader {
     if (bookRef.Schema!.Navigation == null) {
       return <EpubChapterRef>[];
     }
-    resetChapterReader();
-    return getChaptersImpl(
-        bookRef, bookRef.Schema!.Navigation!.NavMap!.Points!);
+    try {
+      return getChaptersImplClassic(
+          bookRef, bookRef.Schema!.Navigation!.NavMap!.Points!);
+    } catch (err) {
+      return getChaptersImpl(
+          bookRef, bookRef.Schema!.Navigation!.NavMap!.Points!);
+    }
   }
 
   static String _cleanPath(String contentFileName) {
@@ -25,10 +29,41 @@ class ChapterReader {
     return contentFileName;
   }
 
-  static List<String> alreadyVisited = List.empty(growable: true);
+  static List<EpubChapterRef> getChaptersImplClassic(
+      EpubBookRef bookRef, List<EpubNavigationPoint> navigationPoints) {
+    var result = <EpubChapterRef>[];
+    navigationPoints.forEach((EpubNavigationPoint navigationPoint) {
+      String? contentFileName;
+      String? anchor;
+      var contentSourceAnchorCharIndex =
+          navigationPoint.Content!.Source!.indexOf('#');
+      if (contentSourceAnchorCharIndex == -1) {
+        contentFileName = navigationPoint.Content!.Source;
+        anchor = null;
+      } else {
+        contentFileName = navigationPoint.Content!.Source!
+            .substring(0, contentSourceAnchorCharIndex);
+        anchor = navigationPoint.Content!.Source!
+            .substring(contentSourceAnchorCharIndex + 1);
+      }
+      contentFileName = Uri.decodeFull(contentFileName!);
+      EpubTextContentFileRef? htmlContentFileRef;
+      if (!bookRef.Content!.Html!.containsKey(contentFileName)) {
+        throw Exception(
+            'Incorrect EPUB manifest: item with href = \"$contentFileName\" is missing.');
+      }
 
-  static void resetChapterReader() {
-    alreadyVisited.clear();
+      htmlContentFileRef = bookRef.Content!.Html![contentFileName];
+      var chapterRef = EpubChapterRef(htmlContentFileRef);
+      chapterRef.ContentFileName = contentFileName;
+      chapterRef.Anchor = anchor;
+      chapterRef.Title = navigationPoint.NavigationLabels!.first.Text;
+      chapterRef.SubChapters =
+          getChaptersImpl(bookRef, navigationPoint.ChildNavigationPoints!);
+
+      result.add(chapterRef);
+    });
+    return result;
   }
 
   static List<EpubChapterRef> getChaptersImpl(
@@ -37,11 +72,6 @@ class ChapterReader {
     var spine = bookRef.Schema!.Package!.Spine!.Items!;
     var manifest = bookRef.Schema!.Package!.Manifest!.Items!;
     for (final column in spine) {
-      if (alreadyVisited.contains(column.IdRef ?? '')) {
-        continue;
-      }
-      alreadyVisited.add(column.IdRef ?? '');
-
       var contentFileName =
           manifest.firstWhere((e) => e.Id == column.IdRef).Href!;
       String? anchor;
@@ -65,9 +95,8 @@ class ChapterReader {
       chapterRef.ContentFileName = contentFileName;
       chapterRef.Anchor = anchor;
       final navPts = bookRef.Schema!.Navigation!.NavMap!.Points!;
-      final navPt = navPts.firstWhereOrNull((e) =>
-          (_cleanPath(e.Content!.Source!) == contentFileName) ||
-          (e.Content!.Id == column.IdRef));
+      final navPt = navPts.firstWhereOrNull(
+          (e) => (_cleanPath(e.Content!.Source!) == contentFileName));
 
       chapterRef.Title = navPt?.NavigationLabels!.first.Text;
       chapterRef.SubChapters = navPt?.ChildNavigationPoints?.isNotEmpty == true
