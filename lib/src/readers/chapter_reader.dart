@@ -63,8 +63,11 @@ class ChapterReader {
         chapterRef.SubChapters = navPt.ChildNavigationPoints?.isEmpty ?? true
             ? []
             : getChaptersImpl(bookRef, navPt.ChildNavigationPoints ?? []);
-        result.add(chapterRef);
+      } else {
+        chapterRef.Title = contentFileName;
+        chapterRef.SubChapters = [];
       }
+      result.add(chapterRef);
     }
     return result;
   }
