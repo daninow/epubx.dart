@@ -10,6 +10,7 @@ class ChapterReader {
     if (bookRef.Schema!.Navigation == null) {
       return <EpubChapterRef>[];
     }
+    resetChapterReader();
     return getChaptersImpl(
         bookRef, bookRef.Schema!.Navigation!.NavMap!.Points!);
   }
@@ -24,12 +25,23 @@ class ChapterReader {
     return contentFileName;
   }
 
+  static List<String> alreadyVisited = List.empty(growable: true);
+
+  static void resetChapterReader() {
+    alreadyVisited.clear();
+  }
+
   static List<EpubChapterRef> getChaptersImpl(
       EpubBookRef bookRef, List<EpubNavigationPoint> navigationPoints) {
     var result = <EpubChapterRef>[];
     var spine = bookRef.Schema!.Package!.Spine!.Items!;
     var manifest = bookRef.Schema!.Package!.Manifest!.Items!;
     for (final column in spine) {
+      if (alreadyVisited.contains(column.IdRef ?? '')) {
+        continue;
+      }
+      alreadyVisited.add(column.IdRef ?? '');
+
       var contentFileName =
           manifest.firstWhere((e) => e.Id == column.IdRef).Href!;
       String? anchor;
