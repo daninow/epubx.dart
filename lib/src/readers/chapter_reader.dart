@@ -54,12 +54,20 @@ class ChapterReader {
       chapterRef.Anchor = anchor;
       final navPts = bookRef.Schema!.Navigation!.NavMap!.Points!;
       final navPt = navPts.firstWhereOrNull(
-              (e) => _cleanPath(e.Content!.Source!) == contentFileName) ??
-          navPts.first;
-      chapterRef.Title = navPt?.NavigationLabels!.first.Text;
-      chapterRef.SubChapters = navPt?.ChildNavigationPoints?.isNotEmpty == true
-          ? getChaptersImpl(bookRef, navPt!.ChildNavigationPoints!)
-          : [];
+          (e) => _cleanPath(e.Content!.Source!) == contentFileName);
+
+      if (navPt == null) {
+        chapterRef.Title = bookRef.Schema!.Navigation!.NavMap!.Points!
+            .firstWhereOrNull((e) => e.Content!.Id == column.IdRef)
+            ?.NavigationLabels!
+            .first
+            .Text;
+      } else {
+        chapterRef.Title = navPt.NavigationLabels!.first.Text;
+        chapterRef.SubChapters = navPt.ChildNavigationPoints?.isNotEmpty == true
+            ? getChaptersImpl(bookRef, navPt.ChildNavigationPoints!)
+            : [];
+      }
 
       result.add(chapterRef);
     }
