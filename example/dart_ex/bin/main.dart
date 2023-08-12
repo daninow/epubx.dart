@@ -5,7 +5,9 @@ import 'package:epubx/epubx.dart';
 
 main(List<String> args) async {
   //Get the epub into memory somehow
-  String fileName = "alicesAdventuresUnderGround.epub";
+  String fileName = "shakespeare.epub";
+  // String fileName = "accessible_epub_3.epub";
+
   String fullPath = path.join(io.Directory.current.path, fileName);
   var targetFile = new io.File(fullPath);
   List<int> bytes = await targetFile.readAsBytes();
@@ -29,16 +31,18 @@ main(List<String> args) async {
 
 // CHAPTERS
 
+  print(epubBook.Chapters);
+
 // Enumerating chapters
   epubBook.Chapters!.forEach((EpubChapter chapter) {
     // Title of chapter
-    String chapterTitle = chapter.Title!;
+    String chapterTitle = chapter.Title ?? '';
 
     // HTML content of current chapter
-    String chapterHtmlContent = chapter.HtmlContent!;
+    String chapterHtmlContent = chapter.HtmlContent ?? '';
 
     // Nested chapters
-    List<EpubChapter> subChapters = chapter.SubChapters!;
+    List<EpubChapter> subChapters = chapter.SubChapters ?? [];
   });
 
 // CONTENT
@@ -93,21 +97,21 @@ main(List<String> args) async {
 
 // Enumerating book's contributors
   package.Metadata!.Contributors!.forEach((contributor) {
-    String contributorName = contributor.Contributor!;
-    String contributorRole = contributor.Role!;
+    String contributorName = contributor.Contributor ?? '';
+    String contributorRole = contributor.Role ?? '';
   });
 
 // EPUB NCX data
   EpubNavigation navigation = epubBook.Schema!.Navigation!;
 
 // Enumerating NCX metadata
-  navigation.Head!.Metadata!.forEach((meta) {
+  navigation.Head?.Metadata?.forEach((meta) {
     String metadataItemName = meta.Name!;
     String metadataItemContent = meta.Content!;
   });
 
   // Write the Book
-  var written = EpubWriter.writeBook(epubBook);
+  //var written = EpubWriter.writeBook(epubBook);
   // Read the book into a new object!
-  var newBook = await EpubReader.readBook(written!);
+  // var newBook = await EpubReader.readBook(written!);
 }
