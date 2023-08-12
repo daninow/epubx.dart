@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'dart:convert' as convert;
 
 import 'package:archive/archive.dart';
-import 'dart:convert' as convert;
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:epubx/src/schema/opf/epub_version.dart';
 import 'package:xml/xml.dart' as xml;
@@ -205,7 +205,6 @@ class NavigationReader {
 //        EpubNavigationPageList pageList = readNavigationPageList(pageListNode);
 //        result.PageList = pageList;
 //      }
-
     }
 
     return result;
@@ -270,7 +269,7 @@ class NavigationReader {
         .whereType<xml.XmlElement>()
         .forEach((xml.XmlElement textNode) {
       if (textNode.name.local.toLowerCase() == 'text') {
-        result.Authors!.add(textNode.text);
+        result.Authors!.add(textNode.value ?? '');
       }
     });
     return result;
@@ -284,7 +283,7 @@ class NavigationReader {
         .whereType<xml.XmlElement>()
         .forEach((xml.XmlElement textNode) {
       if (textNode.name.local.toLowerCase() == 'text') {
-        result.Titles!.add(textNode.text);
+        result.Titles!.add(textNode.value ?? '');
       }
     });
     return result;
@@ -341,7 +340,7 @@ class NavigationReader {
           'Incorrect EPUB navigation label: label text element is missing.');
     }
 
-    result.Text = navigationLabelTextNode.text;
+    result.Text = navigationLabelTextNode.value ?? '';
 
     return result;
   }
@@ -349,7 +348,7 @@ class NavigationReader {
   static EpubNavigationLabel readNavigationLabelV3(
       xml.XmlElement navigationLabelNode) {
     var result = EpubNavigationLabel();
-    result.Text = navigationLabelNode.text.trim();
+    result.Text = navigationLabelNode.value?.trim();
     return result;
   }
 

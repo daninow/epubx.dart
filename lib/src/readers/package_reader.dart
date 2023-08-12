@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'dart:convert' as convert;
 
 import 'package:archive/archive.dart';
-import 'dart:convert' as convert;
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:xml/xml.dart';
 
@@ -135,7 +135,7 @@ class PackageReader {
     metadataNode.children
         .whereType<XmlElement>()
         .forEach((XmlElement metadataItemNode) {
-      var innerText = metadataItemNode.text;
+      var innerText = metadataItemNode.value ?? '';
       switch (metadataItemNode.name.local.toLowerCase()) {
         case 'title':
           result.Titles!.add(innerText);
@@ -215,7 +215,7 @@ class PackageReader {
           break;
       }
     });
-    result.Contributor = metadataContributorNode.text;
+    result.Contributor = metadataContributorNode.value;
     return result;
   }
 
@@ -234,7 +234,7 @@ class PackageReader {
           break;
       }
     });
-    result.Creator = metadataCreatorNode.text;
+    result.Creator = metadataCreatorNode.value;
     return result;
   }
 
@@ -245,7 +245,7 @@ class PackageReader {
     if (eventAttribute != null && eventAttribute.isNotEmpty) {
       result.Event = eventAttribute;
     }
-    result.Date = metadataDateNode.text;
+    result.Date = metadataDateNode.value;
     return result;
   }
 
@@ -264,7 +264,7 @@ class PackageReader {
           break;
       }
     });
-    result.Identifier = metadataIdentifierNode.text;
+    result.Identifier = metadataIdentifierNode.value;
     return result;
   }
 
@@ -310,7 +310,7 @@ class PackageReader {
           break;
       }
     });
-    result.Content = metadataMetaNode.text;
+    result.Content = metadataMetaNode.value;
     return result;
   }
 
