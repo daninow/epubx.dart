@@ -1,5 +1,3 @@
-import 'package:collection/collection.dart';
-
 import '../ref_entities/epub_book_ref.dart';
 import '../ref_entities/epub_chapter_ref.dart';
 import '../ref_entities/epub_text_content_file_ref.dart';
@@ -14,34 +12,26 @@ class ChapterReader {
         bookRef, bookRef.Schema!.Navigation!.NavMap!.Points!);
   }
 
-  static String _cleanPath(String contentFileName) {
-    contentFileName = Uri.decodeFull(contentFileName);
-    var segments = contentFileName.split('/');
-    if (segments.first == '..') {
-      segments.removeAt(0);
-      contentFileName = segments.join('/');
-    }
-    return contentFileName;
-  }
-
   static List<EpubChapterRef> getChaptersImpl(
       EpubBookRef bookRef, List<EpubNavigationPoint> navigationPoints) {
     var result = <EpubChapterRef>[];
-    var spine = bookRef.Schema!.Package!.Spine!.Items!;
-    var manifest = bookRef.Schema!.Package!.Manifest!.Items!;
-    for (final column in spine) {
-      var contentFileName =
-          manifest.firstWhere((e) => e.Id == column.IdRef).Href!;
+    // navigationPoints.forEach((EpubNavigationPoint navigationPoint) {
+    for (var navigationPoint in navigationPoints) {
+      String? contentFileName;
       String? anchor;
-      var contentSourceAnchorCharIndex = contentFileName.indexOf('#');
+      if (navigationPoint.Content?.Source == null) continue;
+      var contentSourceAnchorCharIndex =
+          navigationPoint.Content!.Source!.indexOf('#');
       if (contentSourceAnchorCharIndex == -1) {
+        contentFileName = navigationPoint.Content!.Source;
         anchor = null;
       } else {
-        contentFileName =
-            contentFileName.substring(0, contentSourceAnchorCharIndex);
-        anchor = contentFileName.substring(contentSourceAnchorCharIndex + 1);
+        contentFileName = navigationPoint.Content!.Source!
+            .substring(0, contentSourceAnchorCharIndex);
+        anchor = navigationPoint.Content!.Source!
+            .substring(contentSourceAnchorCharIndex + 1);
       }
-      contentFileName = _cleanPath(contentFileName);
+      contentFileName = Uri.decodeFull(contentFileName!);
       EpubTextContentFileRef? htmlContentFileRef;
       if (!bookRef.Content!.Html!.containsKey(contentFileName)) {
         throw Exception(
@@ -52,16 +42,13 @@ class ChapterReader {
       var chapterRef = EpubChapterRef(htmlContentFileRef);
       chapterRef.ContentFileName = contentFileName;
       chapterRef.Anchor = anchor;
-      final navPts = bookRef.Schema!.Navigation!.NavMap!.Points!;
-      final navPt = navPts.firstWhereOrNull(
-          (e) => _cleanPath(e.Content!.Source!) == contentFileName);
-      chapterRef.Title = navPt?.NavigationLabels!.first.Text;
-      chapterRef.SubChapters = navPt?.ChildNavigationPoints?.isNotEmpty == true
-          ? getChaptersImpl(bookRef, navPt!.ChildNavigationPoints!)
-          : [];
+      chapterRef.Title = navigationPoint.NavigationLabels!.first.Text;
+      chapterRef.SubChapters =
+          getChaptersImpl(bookRef, navigationPoint.ChildNavigationPoints!);
 
       result.add(chapterRef);
     }
+    ;
     return result;
   }
 }
