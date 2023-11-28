@@ -69,6 +69,7 @@ class ChapterReader {
       }
       result.add(chapterRef);
     }
+    ;
     return result;
   }
 }
